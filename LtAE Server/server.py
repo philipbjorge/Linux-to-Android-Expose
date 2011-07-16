@@ -20,6 +20,7 @@ print "Server is on ip " + str(ip)
 print "Server is running on port %d; press Ctrl-C to terminate." % port
 
 clientsock, clientaddr = myServerSocket.accept()
+clientsock.setblocking(0)
 print 'Connected by', clientaddr
 
 running = True
@@ -30,20 +31,33 @@ screen = wnck.screen_get_default()
 while gtk.events_pending():
 		gtk.main_iteration_do(False)
 
+window_list = screen.get_windows()
+
 while running:
-		clientfile.write("Welcome, " + str(clientaddr) + "\n")
-		window_list = screen.get_windows()
+		while gtk.events_pending():
+				gtk.main_iteration_do(False)
 
-		if len(window_list) == 0:
-				clientfile.write("No Windows Found")
-		for win in window_list:
-				clientfile.write(str(win.get_xid())+",")
+		window_list_new = screen.get_windows()
 
-		clientfile.write("Please enter a window: ")
-		line = clientfile.readline().strip()
+		if(len(set(window_list_new) ^ set(window_list)) != 0):
+				window_list = window_list_new
+				if len(window_list) != 0:
+						s = ""
+						for win in window_list:
+								s += str(win.get_xid())+"|"
+						try:
+								clientfile.write(s+'\n')
+						except Exception:
+								pass
+				else:
+						clientfile.write("No windows open.")
 
-		w = wnck.window_get(int(line))
-		w.activate(1)
+		try:
+			line = clientfile.readline().strip()
+			w = wnck.window_get(int(line))
+			w.activate(1)
+		except Exception:
+			pass
 
 clientfile.close()
 clientsock.close()
