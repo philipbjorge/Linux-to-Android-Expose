@@ -1,34 +1,31 @@
 import pygtk
 pygtk.require('2.0')
 import gtk, wnck
+import socket
 
-class WindowLister:
-    def on_btn_click(self, widget, data=None):
-        window_list = wnck.screen_get_default()
+host = ''
+port = 55555
 
-        while gtk.events_pending():
-        		gtk.main_iteration_do(False)
+myServerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+myServerSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+myServerSocket.bind((host, port))
+myServerSocket.listen(1)
 
-        window_list = window_list.get_windows()
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.connect(("gmail.com",80))
+ip = s.getsockname()
+s.close()
 
-        if len(window_list) == 0:
-        		print "No Windows Found"
-        for win in window_list:
-            print win.get_name()
+print "Server is on ip " + str(ip)
+print "Server is running on port %d; press Ctrl-C to terminate." % port
 
-    def __init__(self):
-        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-
-        self.button = gtk.Button("List Windows")
-        self.button.connect("clicked", self.on_btn_click, None)
-
-        self.window.add(self.button)
-        self.window.show_all()
-
-    def main(self):
-        gtk.main()
-
-if __name__ == "__main__":
-    lister = WindowLister()
-    lister.main()
+while 1:
+    clientsock, clientaddr = myServerSocket.accept()
+    clientfile = clientsock.makefile('rw', 0)
+    clientfile.write("Welcome, " + str(clientaddr) + "\n")
+    clientfile.write("Please enter a string: ")
+    line = clientfile.readline().strip()
+    clientfile.write("You entered %d characters.\n" % len(line))
+    clientfile.close()
+    clientsock.close()
 
