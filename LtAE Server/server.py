@@ -26,6 +26,7 @@ print 'Connected by', clientaddr
 running = True
 
 clientfile = clientsock.makefile('rw', 0)
+
 screen = wnck.screen_get_default()
 
 while gtk.events_pending():
@@ -38,7 +39,6 @@ while running:
 				gtk.main_iteration_do(False)
 
 		window_list_new = screen.get_windows()
-
 		if(len(set(window_list_new) ^ set(window_list)) != 0):
 				window_list = window_list_new
 				if len(window_list) != 0:
@@ -46,7 +46,7 @@ while running:
 						for win in window_list:
 								s += str(win.get_xid())+"|"
 						try:
-								clientfile.write(s+'\n')
+								clientfile.write(s+'|'+'\n')
 						except Exception:
 								pass
 				else:

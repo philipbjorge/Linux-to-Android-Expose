@@ -2,6 +2,18 @@ Project Status: Non-Functional
 
 To Run:
 Start server on PC
+	python server.py
+
 Start client on Phone
-Connect
+	Start Android App
+	Put in PC's IP address
+
+
+Server Output
+1234567|12354354|34645645|456456456||
+Where the numbers are X Window IDs and the || is the terminator
+
+Client Output
+1234567
+Where the number is the X Window ID
 
