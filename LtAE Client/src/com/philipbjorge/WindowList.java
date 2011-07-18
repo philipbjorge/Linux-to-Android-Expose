@@ -18,13 +18,23 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import android.app.Activity;
+import android.app.ListActivity;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
+import android.widget.AdapterView.OnItemClickListener;
 
 import com.philipbjorge.LtAEClient.R;
 
@@ -33,54 +43,118 @@ public class WindowList extends Activity {
 	SocketChannel sChannel;
 	String windows;
 	CharsetDecoder decoder = Charset.forName("ISO-8859-1").newDecoder();
-	
+	ArrayList<String> lvContents;
+	ArrayAdapter<String> myListAdapter;
+	ListView lv;
+	TCP tcpTask;
+
 	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ip = getIntent().getStringExtra("ip");
-        // test
         setContentView(R.layout.windowlist);
         
-    	boolean connected = false;
-    	while (!connected) {
-	    	try {
-		    	sChannel = SocketChannel.open();
-		        sChannel.configureBlocking(false);
-		        sChannel.connect(new InetSocketAddress(InetAddress.getByName(ip), 55555));
-		        
-		        while (!sChannel.finishConnect()) {
-		        }
-		        
-		        connected = true;
-	    	} catch (Exception e) {}
-    	}
-    	// Socket is good to go.
-    	while(connected) {
-    		// reading
-    		try {
-				if(getWindows()) {
-					// Clear buttons
-					// for windows.split("|");
-						// Add button with handler to send
-				}
-			} catch (IOException e) {}
-    	}
+        myListAdapter = new ArrayAdapter<String>(this, R.layout.list_item);
+        
+        lv = (ListView)findViewById(R.id.listView1);
+        lv.setAdapter(myListAdapter);
+
+        lv.setOnItemClickListener(new OnItemClickListener() {
+          public void onItemClick(AdapterView<?> parent, View view,
+              int position, long id) {
+            // When clicked, send Textview text to server
+            Toast.makeText(getApplicationContext(), ((TextView) view).getText(),
+                Toast.LENGTH_SHORT).show();
+          }
+        });
+        
+        ip = getIntent().getStringExtra("ip");
+        
+        
+        tcpTask = new TCP();
+        tcpTask.execute(ip);
+        //Thread thread = new Thread(new TCP(ip, myListAdapter));
+        //thread.start();
     }
     
-    private boolean getWindows() throws IOException {
-    	ByteBuffer buf = ByteBuffer.allocate(48);
-    	int bytesread = sChannel.read(buf);
-    	if(bytesread == 0)
-    	{
-    		return false;
+    
+    //
+    // TCP AsyncTask
+    //
+    protected class TCP extends AsyncTask<String,String,Void> {
+    	String ip;
+    	SocketChannel sChannel;
+    	String windows;
+    	CharsetDecoder decoder = Charset.forName("ISO-8859-1").newDecoder();
+    	
+    	@Override
+    	protected void onPreExecute() {
+    		windows = "";
+    		myListAdapter.setNotifyOnChange(true);
+            myListAdapter.add("Connecting...");
     	}
-    	buf.flip();
-    	String s = decoder.decode(buf).toString();
-    	//windows = s.split("|");
-    	windows = s;
-    	buf.clear();
-    	return true;
+    	
+    	@Override
+    	protected Void doInBackground(String... params) {
+    		
+    		ip = params[0];
+    		
+        	boolean connected = false;
+        	while (!connected) {
+    	    	try {
+    		    	sChannel = SocketChannel.open();
+    		        sChannel.configureBlocking(false);
+    		        sChannel.connect(new InetSocketAddress(InetAddress.getByName(ip), 55555));
+    		        
+    		        while (!sChannel.finishConnect()) {
+    		        }
+    		        
+    		        connected = true;
+    	    	} catch (Exception e) {}
+        	}
+        	// Socket is good to go.
+        	while(connected) {
+        		// writing handled in button event
+        		// reading
+        		try {
+    				if(getWindows()) {
+    					// TODO: Publish message
+    					// TODO: on reciept of message, clear, and add exploded
+    					publishProgress(windows);
+    				}
+    			} catch (IOException e) {}
+        	}
+    		
+    		return null;
+    	}
+        
+        // -- called from the publish progress 
+        // -- notice that the datatype of the second param gets passed to this method
+        @Override
+        protected void onProgressUpdate(String... values) 
+        {
+        	myListAdapter.clear();
+        	String[] exploded = values[0].split("\\|");
+        	for(String id : exploded) {
+        		myListAdapter.add(id);
+        	}
+        }
+
+    	
+        private boolean getWindows() throws IOException {
+        	ByteBuffer buf = ByteBuffer.allocate(1024);
+        	int bytesread = sChannel.read(buf);
+        	if(bytesread == 0)
+        	{
+        		return false;
+        	}
+        	buf.flip();
+        	String s = decoder.decode(buf).toString();
+        	windows = s;
+        	buf.clear();
+        	return true;
+        }
+
     }
 }
