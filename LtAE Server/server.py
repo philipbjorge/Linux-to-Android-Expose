@@ -53,7 +53,8 @@ while running:
 						clientfile.write("No windows open.")
 
 		try:
-			line = clientfile.readline().strip()
+			line = clientfile.readline().rstrip()
+			print line
 			w = wnck.window_get(int(line))
 			w.activate(1)
 		except Exception:

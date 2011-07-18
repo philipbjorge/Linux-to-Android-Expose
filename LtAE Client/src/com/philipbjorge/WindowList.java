@@ -43,6 +43,7 @@ public class WindowList extends Activity {
 	SocketChannel sChannel;
 	String windows;
 	CharsetDecoder decoder = Charset.forName("ISO-8859-1").newDecoder();
+	CharsetEncoder enc = Charset.forName("US-ASCII").newEncoder();  
 	ArrayList<String> lvContents;
 	ArrayAdapter<String> myListAdapter;
 	ListView lv;
@@ -59,21 +60,33 @@ public class WindowList extends Activity {
         
         lv = (ListView)findViewById(R.id.listView1);
         lv.setAdapter(myListAdapter);
-
-        lv.setOnItemClickListener(new OnItemClickListener() {
-          public void onItemClick(AdapterView<?> parent, View view,
-              int position, long id) {
-            // When clicked, send Textview text to server
-            Toast.makeText(getApplicationContext(), ((TextView) view).getText(),
-                Toast.LENGTH_SHORT).show();
-          }
-        });
         
-        ip = getIntent().getStringExtra("ip");
-        
-        
+        ip = getIntent().getStringExtra("ip");   
         tcpTask = new TCP();
         tcpTask.execute(ip);
+        
+        lv.setOnItemClickListener(new OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view,
+                int position, long id) {
+              // When clicked, send Textview text to server
+            	try {
+            		String command = ((TextView) view).getText().toString();
+            		command += "\n";
+            		
+            		ByteBuffer buf = ByteBuffer.allocate(24);
+            		buf.clear();
+            		buf.put(command.getBytes());
+            	    // Prepare the buffer for reading by the socket
+            	    buf.flip();
+            		
+            	    // Write bytes
+            		while(buf.hasRemaining()) {
+            			tcpTask.sChannel.write(buf);
+            		}
+            		
+            	} catch (Exception e) {}
+            }
+          });
         //Thread thread = new Thread(new TCP(ip, myListAdapter));
         //thread.start();
     }
@@ -84,7 +97,7 @@ public class WindowList extends Activity {
     //
     protected class TCP extends AsyncTask<String,String,Void> {
     	String ip;
-    	SocketChannel sChannel;
+    	public SocketChannel sChannel;
     	String windows;
     	CharsetDecoder decoder = Charset.forName("ISO-8859-1").newDecoder();
     	
@@ -140,7 +153,6 @@ public class WindowList extends Activity {
         		myListAdapter.add(id);
         	}
         }
-
     	
         private boolean getWindows() throws IOException {
         	ByteBuffer buf = ByteBuffer.allocate(1024);
@@ -155,6 +167,5 @@ public class WindowList extends Activity {
         	buf.clear();
         	return true;
         }
-
     }
 }
