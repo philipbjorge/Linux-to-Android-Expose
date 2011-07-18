@@ -24,6 +24,7 @@ Where the number is the X Window ID
 
 TODO:
 Get a code review done on my network code
+Create windows and mac versions of the server
 Add window names and icons
 Implement "Starred/Working" windows list
 Add more window management features?
