@@ -1,4 +1,4 @@
-Project Status: Non-Functional
+Project Status: Prototype functioning
 
 To Run:
 Start server on PC
@@ -7,13 +7,16 @@ Start server on PC
 Start client on Phone
 	Start Android App
 	Put in PC's IP address
+	Click the button
+	Select windows based on ID
 
 
 Server Output
-1234567|12354354|34645645|456456456||
-Where the numbers are X Window IDs and the || is the terminator
+1234567|12354354|34645645|456456456||\n
+Where the numbers are X Window IDs and the || is the terminator between window lists
+
 
 Client Output
-1234567
+1234567\n
 Where the number is the X Window ID
 

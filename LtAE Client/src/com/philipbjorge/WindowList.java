@@ -71,24 +71,13 @@ public class WindowList extends Activity {
               // When clicked, send Textview text to server
             	try {
             		String command = ((TextView) view).getText().toString();
-            		command += "\n";
+            		command += System.getProperty("line.separator"); // adds newline
             		
-            		ByteBuffer buf = ByteBuffer.allocate(24);
-            		buf.clear();
-            		buf.put(command.getBytes());
-            	    // Prepare the buffer for reading by the socket
-            	    buf.flip();
-            		
-            	    // Write bytes
-            		while(buf.hasRemaining()) {
-            			tcpTask.sChannel.write(buf);
-            		}
-            		
+            		tcpTask.write(command);
             	} catch (Exception e) {}
             }
           });
-        //Thread thread = new Thread(new TCP(ip, myListAdapter));
-        //thread.start();
+        
     }
     
     
@@ -153,6 +142,19 @@ public class WindowList extends Activity {
         		myListAdapter.add(id);
         	}
         }
+        
+        public void write(String command) throws IOException {
+    		ByteBuffer buf = ByteBuffer.allocate(24);
+    		buf.clear();
+    		buf.put(command.getBytes());
+    	    // Prepare the buffer for reading by the socket
+    	    buf.flip();
+    		
+    	    // Write bytes
+    		while(buf.hasRemaining()) {
+    			sChannel.write(buf);
+    		}
+        }
     	
         private boolean getWindows() throws IOException {
         	ByteBuffer buf = ByteBuffer.allocate(1024);
@@ -162,8 +164,12 @@ public class WindowList extends Activity {
         		return false;
         	}
         	buf.flip();
-        	String s = decoder.decode(buf).toString();
-        	windows = s;
+        	String s = decoder.decode(buf).toString().replaceAll("\\r|\\n", ""); // removes newline
+        	
+        	// In case multiple window lists are recieved, use the newest
+        	String[] temp = s.split("\\|\\|");
+        	windows = temp[temp.length-1];
+        	
         	buf.clear();
         	return true;
         }

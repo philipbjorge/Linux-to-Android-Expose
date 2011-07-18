@@ -31,7 +31,7 @@ screen = wnck.screen_get_default()
 while gtk.events_pending():
 		gtk.main_iteration_do(False)
 
-window_list = screen.get_windows()
+window_list = ""
 
 while running:
 		while gtk.events_pending():
