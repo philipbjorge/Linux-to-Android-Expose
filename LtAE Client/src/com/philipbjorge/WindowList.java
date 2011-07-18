@@ -121,8 +121,6 @@ public class WindowList extends Activity {
         		// reading
         		try {
     				if(getWindows()) {
-    					// TODO: Publish message
-    					// TODO: on reciept of message, clear, and add exploded
     					publishProgress(windows);
     				}
     			} catch (IOException e) {}
