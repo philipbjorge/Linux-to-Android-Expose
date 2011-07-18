@@ -1,7 +1,6 @@
 import pygtk
 pygtk.require('2.0')
-import gtk, wnck
-import socket
+import gtk, wnck, time, socket
 
 host = ''
 port = 55555
@@ -54,9 +53,8 @@ while running:
 
 		try:
 			line = clientfile.readline().rstrip()
-			print line
 			w = wnck.window_get(int(line))
-			w.activate(1)
+			w.activate(int(time.time()))
 		except Exception:
 			pass
 
