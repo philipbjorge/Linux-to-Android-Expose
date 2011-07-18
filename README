@@ -20,3 +20,15 @@ Client Output
 1234567\n
 Where the number is the X Window ID
 
+
+
+TODO:
+Get a code review done on my network code
+Add window names and icons
+Implement "Starred/Working" windows list
+Add more window management features?
+
+UI Improvements
+  - Improve app home screen
+	- Implement tabs for full list and starred list
+
